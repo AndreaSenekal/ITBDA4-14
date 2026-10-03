@@ -93,7 +93,6 @@ library(textstem)
 
 # apply lemmatization and add back to df
 news.data$lemmatized = lapply(news.data$tokens,lemmatize_words)
-news.data$lemmatized = sapply(news.data$lemmatized,paste,collapse=' ')
 
 # view df
 View(news.data)
@@ -141,12 +140,21 @@ View(news.data)
 
 ######################################
 
+# final output
+
+news.data$final = sapply(news.data$no_stop,paste,collapse=' ')
+
+
+
+
+######################################
+
 ## create document feature matrix
 
 # install.packages('quanteda')
 library(quanteda)
 
-news.data.dfm = dfm(tokens(news.data.no.stopwords))
+news.data.dfm = dfm(tokens(news.data$final))
 
 
 
