@@ -70,47 +70,86 @@ library(stopwords)
 
 ######################################
 
-## remove stopwords
+## tokenization
+## break down a string into tokens
+## tokens = smaller components
 
-tm = loadNamespace('tm')
-stop_w = stopwords(source='smart')
+# install.packages('tokenizers')
+library(tokenizers)
 
-# create corpus and remove stopwords
-news.corpus = tm$Corpus(tm$VectorSource(news.data$col_2))
-news.corpus = tm$tm_map(news.corpus,tm$removeWords,stop_w)
+# tokenize news articles
+news.data.tokens = unlist(tokenize_words(news.data$col_2))
 
-# create a document term matrix of the corpus
-dtm = tm$DocumentTermMatrix(news.corpus)
-print(dtm)
-# documents: 10                     matches my 10 news articles
-# terms: 1026                       unique words across all my articles
-# Non-/sparse entries: 1312/8948    actual words
-# Sparsity: 87%                     how much of my df col_2 is empty
-# Maximal term length: 19           longest word
-# Weighting: term frequency (tf)    raw word counts
+# view tokenized words
+print(news.data.tokens)
 
-dtm_df = as.data.frame(as.matrix(dtm))
-
-# sum word list with frequency
-word_freq = colSums(dtm_df)
-
-# create word frequency df
-stop_w_list = names(word_freq) %in% stop_w
-word_freq_df = data.frame(word=names(word_freq),freq=word_freq,is_stopword=stop_w_list) %>%
-  arrange(desc(freq))
-  
 ######################################
 
 ## lemmatization
 ## take words down to their base/root
 
+# install.packages('textstem')
+library(textstem)
+
+# apply lemmatization
+news.data.lemmatized = lemmatize_words(news.data.tokens)
+
+# view lemmatized data
+print(news.data.lemmatized)
+
+######################################
+
+## remove stopwords
+
+library(dplyr)
+
+tm = loadNamespace('tm')
+stop.w = stopwords(source='smart')
+
+# create corpus and remove stopwords
+news.corpus = tm$Corpus(tm$VectorSource(news.data.lemmatized))
+news.corpus = tm$tm_map(news.corpus,tm$removeWords,stop.w)
+
+# create a document term matrix of the corpus
+dtm = tm$DocumentTermMatrix(news.corpus)
+print(dtm)
+# documents: 3715                   total strings
+# terms: 893                        unique words
+# Non-/sparse entries: 2004/3315491 actual words
+# Sparsity: 100%                    how much of my data is empty
+# Maximal term length: 19           longest word
+# Weighting: term frequency (tf)    raw word counts
+
+dtm.df = as.data.frame(as.matrix(dtm))
+
+# sum word list with frequency
+word.freq = colSums(dtm.df)
+
+# create word frequency df
+stop.w.list = names(word.freq) %in% stop.w
+word.freq.df = data.frame(word=names(word.freq),freq=word.freq,is_stopword=stop.w.list) %>%
+    arrange(desc(freq))
+  
+# sense check - did stopwords slip through?
+sum(word.freq.df$is_stopword)
+
+# create doc for words that aren't stopwords
+news.data.no.stopwords = word.freq.df$word
+
+# view data
+print(news.data.no.stopwords)
+
+######################################
+
+## create document feature matrix
 
 
 
 
 
 
-# create doc-term matrix
+
+
 # fit lda model
 # model eval
 
