@@ -10,6 +10,7 @@ path = 'C:/Users/andre/OneDrive/Desktop/Eduvos/ITBDA4-14/Project 2 - in progress
 news.list = list('news_1.txt','news_2.txt','news_3.txt','news_4.txt','news_5.txt'
                 ,'news_6.txt','news_7.txt','news_8.txt','news_9.txt','news_10.txt')
 
+######################################
 
 ##  create data frame with text files
 
@@ -25,16 +26,58 @@ for (i in 1:length(news.list)) {
   news.data = rbind(news.data,news_c)
 }
 
-##  view data frame
+######################################
+
+## view data frame
 
 View(news.data)
 
-##  clean data frame
+######################################
+
+## clean data frame
 
 # install.packages('tidyverse')
 library(tidyverse)
 
+# remove file extension from col_1
 news.data$col_1 = gsub('.txt','',news.data$col_1)
+
+# handle case sensitivity
+news.data$col_2 = str_to_lower(news.data$col_2)
+
+# remove punctuation
+news.data$col_2 = str_remove_all(news.data$col_2,'[[:punct:]]')
+
+# remove white space
+news.data$col_2 = str_squish(news.data$col_2)
+
+
+######################################
+
+## view data frame
+
+View(news.data)
+
+######################################
+## question 2.2
+######################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
