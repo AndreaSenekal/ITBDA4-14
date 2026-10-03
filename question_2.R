@@ -290,10 +290,64 @@ for (i in 1:k.topics) {
 ## question 2.3
 ######################################
 
-# bar charts
-# document-topic heatmap
-# word clouds per topic
+# install.packages('wordcloud') 
+library(wordcloud)
+library(RColorBrewer)
+library(ggplot2)
 
+colors=brewer.pal(k.topics,"Dark2")
 
+######################################
+
+## wordcloud for 5 topics
+
+max.w = 20
+
+for (i in 1:k.topics) {
+  
+  topic.probs = lda.model$beta[i, ]
+  
+  wordcloud(
+    words = names(topic.probs)
+    ,freq = topic.probs
+    ,min.freq = 0
+    ,max.words = max.w
+    ,random.order = FALSE
+    ,color=colors
+  )
+  
+  title(paste('Topic', i))
+}
+
+######################################
+
+## heatmap for 5 topics
+
+max.w = 10
+
+beta.df = as.data.frame(lda.model$beta)
+beta.df$topic = rownames(beta.df)
+
+beta.long = beta.df %>%
+  pivot_longer(cols=-topic,names_to='term',values_to='beta')
+
+top.words = beta.long %>%
+  group_by(topic) %>%
+  slice_max(beta,n =max.w) %>%
+  pull(term) %>%
+  unique()
+
+beta.filtered = beta.long %>% filter(term %in% top.words)
+
+ggplot(beta.filtered
+       ,aes(x=topic,y=term,fill=beta)) +
+        geom_tile(color = 'white') +
+        scale_fill_gradient(low = 'darkblue', high = 'darkred') +
+        labs(title='Topic-Word Heatmap (Top Terms)',x='Topic',y ='Term',fill = 'Beta'
+        ) +
+        theme_minimal()
+
+######################################
+######################################
 
 
