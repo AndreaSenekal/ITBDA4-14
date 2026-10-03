@@ -64,12 +64,6 @@ View(news.data)
 ## question 2.2
 ######################################
 
-# install.packages('tidylda')
-library(tidylda)
-library(stopwords)
-
-######################################
-
 ## tokenization
 ## break down a string into tokens
 ## tokens = smaller components
@@ -78,10 +72,16 @@ library(stopwords)
 library(tokenizers)
 
 # tokenize news articles
-news.data.tokens = unlist(tokenize_words(news.data$col_2))
+news.data.tokens = tokenize_words(news.data$col_2)
 
 # view tokenized words
 print(news.data.tokens)
+
+# add tokens back to df
+news.data$tokens = news.data.tokens
+
+# view df
+View(news.data)
 
 ######################################
 
@@ -91,33 +91,35 @@ print(news.data.tokens)
 # install.packages('textstem')
 library(textstem)
 
-# apply lemmatization
-news.data.lemmatized = lemmatize_words(news.data.tokens)
+# apply lemmatization and add back to df
+news.data$lemmatized = lapply(news.data$tokens,lemmatize_words)
+news.data$lemmatized = sapply(news.data$lemmatized,paste,collapse=' ')
 
-# view lemmatized data
-print(news.data.lemmatized)
+# view df
+View(news.data)
 
 ######################################
 
 ## remove stopwords
 
 library(dplyr)
+library(stopwords)
 
 tm = loadNamespace('tm')
 stop.w = stopwords(source='smart')
 
 # create corpus and remove stopwords
-news.corpus = tm$Corpus(tm$VectorSource(news.data.lemmatized))
+news.corpus = tm$Corpus(tm$VectorSource(news.data$lemmatized))
 news.corpus = tm$tm_map(news.corpus,tm$removeWords,stop.w)
 
 # create a document term matrix of the corpus
 dtm = tm$DocumentTermMatrix(news.corpus)
 print(dtm)
-# documents: 3715                   total strings
-# terms: 893                        unique words
-# Non-/sparse entries: 2004/3315491 actual words
-# Sparsity: 100%                    how much of my data is empty
-# Maximal term length: 19           longest word
+# documents: 10                     total articles
+# terms: 909                        unique words
+# Non-/sparse entries: 1255/7835    actual words
+# Sparsity: 86%                     how much of my data is empty
+# Maximal term length: 22           longest word
 # Weighting: term frequency (tf)    raw word counts
 
 dtm.df = as.data.frame(as.matrix(dtm))
@@ -129,21 +131,22 @@ word.freq = colSums(dtm.df)
 stop.w.list = names(word.freq) %in% stop.w
 word.freq.df = data.frame(word=names(word.freq),freq=word.freq,is_stopword=stop.w.list) %>%
     arrange(desc(freq))
-  
-# sense check - did stopwords slip through?
-sum(word.freq.df$is_stopword)
 
-# create doc for words that aren't stopwords
-news.data.no.stopwords = word.freq.df$word
+# remove stopwords and add back to df
+news.data$no_stop = lapply(news.data$lemmatized,function(words)
+  {words[!words %in% stop.w]})
 
-# view data
-print(news.data.no.stopwords)
+# view df
+View(news.data)
 
 ######################################
 
 ## create document feature matrix
 
+# install.packages('quanteda')
+library(quanteda)
 
+news.data.dfm = dfm(tokens(news.data.no.stopwords))
 
 
 
