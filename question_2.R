@@ -266,10 +266,33 @@ lda.model$r2
 # r^2 = 0.5487692 - good fit
 
 ######################################
+
+## top k words
+
+# install.packages('lda')
+library(lda)
+
+k=5
+
+top.k.words = top.topic.words(lda.model$beta,num.words=k,by.score=TRUE)
+print(top.k.words)
+
+k.topics = nrow(lda.model$beta)
+
+for (i in 1:k.topics) {
+  cat('\n--- Topic',i, '---\n')
+  topic.probs = lda.model$beta[i, ]
+  top.words = sort(topic.probs, decreasing=TRUE)[1:k]
+  print(data.frame(word=names(top.words),probability=round(top.words,4)))
+}
+
+######################################
 ## question 2.3
 ######################################
 
-
+# bar charts
+# document-topic heatmap
+# word clouds per topic
 
 
 
