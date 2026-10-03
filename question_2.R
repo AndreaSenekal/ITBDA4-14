@@ -144,9 +144,6 @@ View(news.data)
 
 news.data$final = sapply(news.data$no_stop,paste,collapse=' ')
 
-
-
-
 ######################################
 
 ## create document feature matrix
@@ -156,27 +153,121 @@ library(quanteda)
 
 news.data.dfm = dfm(tokens(news.data$final))
 
+######################################
 
+# fit LDA model
 
+# install.packages('tidylda')
+library(tidylda)
+library(dplyr)
+library(purrr)
+library(tibble)
 
+# test to identify best parameters
+k.values = c(2,3,4,5)
+iterations.values = c(200,500,750,1000)
+burnin.faction = 0.8
 
+# build grid
+param.grid = expand.grid(k=k.values,iterations=iterations.values) %>%
+  mutate(burnin=floor(iterations*burnin.faction))
 
-# fit lda model
-# model eval
+# loop lda model through combinations/grid
 
+results.list = list()
 
+for (i in seq_len(nrow(param.grid))) {
+  
+  params=param.grid[i,]
+  
+  set.seed(200)
+  
+  lda.model = tidylda(
+    data = news.data.dfm
+    ,k=params$k
+    ,iterations=params$iterations
+    ,burnin=params$burnin
+    ,calc_likelihood=TRUE
+    ,calc_r2=TRUE
+  )
+  
+  if (!is.null(lda.model)) {
+    results.list[[i]]=list(
+    k=params$k
+    ,iterations=params$iterations
+    ,burnin=params$burnin
+    ,log_likelihood=sum(lda.model$log_likelihood$log_likelihood,na.rm =TRUE)
+    ,r2=lda.model$r2
+    ,model=lda.model
+    )
+  }
+  
+}
 
+# compare results
+results.df = map_dfr(results.list, ~ tibble(
+  k=.x$k
+  ,iterations=.x$iterations
+  ,burnin=.x$burnin
+  ,log_likelihood=.x$log_likelihood
+  ,r2=.x$r2
+))
 
+# find best combo
+best.index = which.max(sapply(results.list,function(x) x$r2))
 
+best.model <- results.list[[best.index]]$model
+best.params <- results.list[[best.index]]
 
+cat('Best model: k =',best.params$k
+    ,', iterations =',best.params$iterations
+    ,', burnin =',best.params$burnin)
 
+# build final lda model
+k=5
+iterations=750
+burnin=floor(iterations*0.8)
 
+set.seed(200)
 
+lda.model = tidylda(
+  data = news.data.dfm
+  ,k=k
+  ,iterations=iterations
+  ,burnin=burnin
+  ,calc_likelihood=TRUE
+  ,calc_r2=TRUE
+)
 
+# view summary of model
+lda.model$summary
 
+######################################
 
+## model eval
 
+library(ggplot2)
 
+# convergence/log-likelihood
+ggplot(lda.model$log_likelihood
+       ,aes(x=iteration,y=log_likelihood))+
+        geom_line()+
+        labs(title='Log-Likelihood Convergence',x='Iteration',y='Log-Likelihood')+
+        theme_minimal()
+# higher (less negative) = better fit
+# measures how well the model's current topics match actual text data
+# still fluctuating somewhat at the end
+# but because there are only 10 documents, it will most likely never be completely stable
+
+# r^2
+lda.model$r2 
+# measures how much of your text data the topic model 
+# higher (closer to 1) = more variance explained
+# r^2 = 0.5487692 - good fit
+
+######################################
+## question 2.3
+######################################
 
 
 
