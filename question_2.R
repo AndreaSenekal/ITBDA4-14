@@ -19,7 +19,7 @@ news.data = data.frame(col_1=character(),col_2=character(),stringsAsFactors = FA
 for (i in 1:length(news.list)) {
   full.path = file.path(path,news.list[[i]])
   
-  news = paste(readLines(full.path,warn=FALSE),collapse='')
+  news = paste(readLines(full.path,warn=FALSE),collapse=' ')
   
   news_c = data.frame(col_1=news.list[[i]],col_2=news,stringsAsFactors = FALSE)
   
@@ -48,9 +48,11 @@ news.data$col_2 = str_to_lower(news.data$col_2)
 # remove punctuation
 news.data$col_2 = str_remove_all(news.data$col_2,'[[:punct:]]')
 
+# remove numbers/digits
+news.data$col_2 = gsub('[[:digit:]]+',' ',news.data$col_2)
+
 # remove white space
 news.data$col_2 = str_squish(news.data$col_2)
-
 
 ######################################
 
@@ -67,7 +69,7 @@ View(news.data)
 
 
 
-
+# 
 
 
 
