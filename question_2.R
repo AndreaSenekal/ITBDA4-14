@@ -64,13 +64,55 @@ View(news.data)
 ## question 2.2
 ######################################
 
+# install.packages('tidylda')
+library(tidylda)
+library(stopwords)
+
+######################################
+
+## remove stopwords
+
+tm = loadNamespace('tm')
+stop_w = stopwords(source='smart')
+
+# create corpus and remove stopwords
+news.corpus = tm$Corpus(tm$VectorSource(news.data$col_2))
+news.corpus = tm$tm_map(news.corpus,tm$removeWords,stop_w)
+
+# create a document term matrix of the corpus
+dtm = tm$DocumentTermMatrix(news.corpus)
+print(dtm)
+# documents: 10                     matches my 10 news articles
+# terms: 1026                       unique words across all my articles
+# Non-/sparse entries: 1312/8948    actual words
+# Sparsity: 87%                     how much of my df col_2 is empty
+# Maximal term length: 19           longest word
+# Weighting: term frequency (tf)    raw word counts
+
+dtm_df = as.data.frame(as.matrix(dtm))
+
+# sum word list with frequency
+word_freq = colSums(dtm_df)
+
+# create word frequency df
+stop_w_list = names(word_freq) %in% stop_w
+word_freq_df = data.frame(word=names(word_freq),freq=word_freq,is_stopword=stop_w_list) %>%
+  arrange(desc(freq))
+  
+######################################
+
+## lemmatization
+## take words down to their base/root
 
 
 
 
 
-# 
 
+
+# create doc-term matrix
+# fit lda model
+# model eval
 
 
 
