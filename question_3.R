@@ -4,61 +4,55 @@
 ######################################
 
 # install.packages('rvest')
+# install.packages('xml2')
 library(rvest)
+library(xml2)
+library(dplyr)
+library(stringr)
 
-wiki.horror.url = read_html('https://en.wikipedia.org/wiki/Horror_fiction')
+horror.url = read_html('https://www.thegothiclibrary.com/the-history-of-horror/')
 
-# target by tag by section
+## get header of website
 
-intro = wiki.horror.url %>%
-  html_node('section[data-mw-section-id="0"]') %>%
-  html_elements('p,li') %>%
-  html_text(trim = TRUE)
+header = horror.url %>%
+  html_element('.entry-header') %>%
+  html_text(trim=TRUE)
 
-history.before.1000 = wiki.horror.url %>%
-  html_node('section[data-mw-section-id="1"]') %>%
-  html_elements('p,li') %>%
-  html_text(trim = TRUE)
+## pull contents of website
 
-history.after.1000 = wiki.horror.url %>%
-  html_node('section[data-mw-section-id="3"]') %>%
-  html_elements('p,li') %>%
-  html_text(trim = TRUE)
+body = horror.url %>%
+  html_element('.entry-content')
 
-history.18th = wiki.horror.url %>%
-  html_node('section[data-mw-section-id="4"]') %>%
-  html_elements('p,li') %>%
-  html_text(trim = TRUE)
+## remove unnecessary elements
 
-history.19th = wiki.horror.url %>%
-  html_node('section[data-mw-section-id="5"]') %>%
-  html_elements('p,li') %>%
-  html_text(trim = TRUE)
+body %>%
+  html_elements('figure,img,div') %>%
+  xml_remove()
 
-history.20th = wiki.horror.url %>%
-  html_node('section[data-mw-section-id="6"]') %>%
-  html_elements('p,li') %>%
-  html_text(trim = TRUE)
+## split by paragraphs
 
-history.21st = wiki.horror.url %>%
-  html_node('section[data-mw-section-id="7"]') %>%
-  html_elements('p,li') %>%
-  html_text(trim = TRUE)
+paragraphs = body %>%
+  html_elements('p')
 
-history.charact = wiki.horror.url %>%
-  html_node('section[data-mw-section-id="8"]') %>%
-  html_elements('p,li') %>%
-  html_text(trim = TRUE)
+paragraphs.list = list()
 
-history.criticism = wiki.horror.url %>%
-  html_node('section[data-mw-section-id="9"]') %>%
-  html_elements('p,li') %>%
-  html_text(trim = TRUE)
+for (i in seq_along(paragraphs)) {
+  paragraphs.list[[i]] = paragraphs[i] %>%
+    html_text2()
+}
+paragraphs.list
 
-history.awards = wiki.horror.url %>%
-  html_node('section[data-mw-section-id="10"]') %>%
-  html_elements('p,li') %>%
-  html_text(trim = TRUE)
+
+
+
+
+
+
+
+##### whet i have so far
+header
+paragraphs
+
 
 
 
