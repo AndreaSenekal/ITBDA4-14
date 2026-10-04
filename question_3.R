@@ -32,32 +32,43 @@ body %>%
 ## split by paragraphs
 
 paragraphs = body %>%
-  html_elements('p')
+  html_elements('p') %>%
+  .[html_text2(.)!='']
 
 paragraphs.list = list()
 
 for (i in seq_along(paragraphs)) {
-  paragraphs.list[[i]] = paragraphs[i] %>%
+  paragraphs.list[i] = paragraphs[i] %>%
     html_text2()
 }
-paragraphs.list
 
+## what headers do I have
 
+header.list = list('Title')
 
+k=1
+for (i in paragraphs.list) {
+  header.list[[length(header.list)+1]] = paste('Paragraph',{k},sep=' ')
+  k=k+1
+}
 
+## what content do I have
 
+content.list = list(header)
 
+k=1
+for (i in paragraphs.list) {
+  content.list[[length(content.list)+1]] = paragraphs.list[k]
+  k=k+1
+}
 
 
 ##### whet i have so far
 header
 paragraphs
-
-
-
-
-
-
+paragraphs.list
+header.list
+content.list
 
 
 
