@@ -83,6 +83,58 @@ View(horror.df)
 ## question 3.2
 ######################################
 
+library(tidyverse)
+
+######################################
+
+## clean data frame
+
+# handle case sensitivity
+horror.df$titles = str_to_lower(horror.df$titles)
+horror.df$clean_data = str_to_lower(horror.df$content)
+
+# remove punctuation
+horror.df$clean_data = str_remove_all(horror.df$clean_data,'[[:punct:]]')
+
+# remove numbers/digits
+horror.df$clean_data = gsub('[[:digit:]]+',' ',horror.df$clean_data)
+
+# remove white space
+horror.df$clean_data = str_squish(horror.df$clean_data)
+
+## view df
+
+View(horror.df)
+
+######################################
+
+## tokenization
+## break down a string into tokens
+## tokens = smaller components
+
+library(tokenizers)
+
+# tokenize news articles
+horror.df.tokens = tokenize_words(horror.df$clean_data)
+
+# view tokenized words
+print(horror.df.tokens)
+
+# add tokens back to df
+horror.df$tokens = horror.df.tokens
+
+# view df
+View(horror.df)
+
+
+
+
+
+
+
+
+
+
 
 
 
