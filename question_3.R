@@ -126,14 +126,59 @@ horror.df$tokens = horror.df.tokens
 # view df
 View(horror.df)
 
+######################################
 
+## lemmatization
+## take words down to their base/root
 
+library(textstem)
 
+# apply lemmatization and add back to df
+horror.df$lemmatized = lapply(horror.df$tokens,lemmatize_words)
 
+# view df
+View(horror.df)
 
+######################################
 
+## remove stopwords
 
+library(dplyr)
+library(stopwords)
 
+tm = loadNamespace('tm')
+stop.w = stopwords(source='smart')
+
+# create corpus and remove stopwords
+horror.corpus = tm$Corpus(tm$VectorSource(horror.df$lemmatized))
+horror.corpus = tm$tm_map(horror.corpus,tm$removeWords,stop.w)
+
+# create a document term matrix of the corpus
+dtm = tm$DocumentTermMatrix(horror.corpus)
+print(dtm)
+# documents: 9                      header and contents
+# terms: 353                        unique words
+# Non-/sparse entries: 463/2714     actual words
+# Sparsity: 85%                     how much of my data is empty
+# Maximal term length: 20           longest word
+# Weighting: term frequency (tf)    raw word counts
+
+dtm.df = as.data.frame(as.matrix(dtm))
+
+# sum word list with frequency
+word.freq = colSums(dtm.df)
+
+# create word frequency df
+stop.w.list = names(word.freq) %in% stop.w
+word.freq.df = data.frame(word=names(word.freq),freq=word.freq,is_stopword=stop.w.list) %>%
+  arrange(desc(freq))
+
+# remove stopwords and add back to df
+horror.df$no_stop = lapply(horror.df$lemmatized,function(words)
+{words[!words %in% stop.w]})
+
+# view df
+View(horror.df)
 
 
 
