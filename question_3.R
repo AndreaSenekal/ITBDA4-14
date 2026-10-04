@@ -180,9 +180,14 @@ horror.df$no_stop = lapply(horror.df$lemmatized,function(words)
 # view df
 View(horror.df)
 
+######################################
 
+# final output
 
+horror.df$final = sapply(horror.df$no_stop,paste,collapse=' ')
 
+# view df
+View(horror.df)
 
 
 
