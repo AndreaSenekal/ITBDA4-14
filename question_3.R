@@ -189,13 +189,6 @@ horror.df$final = sapply(horror.df$no_stop,paste,collapse=' ')
 # view df
 View(horror.df)
 
-
-
-
-
-
-
-
 ######################################
 ## question 3.3
 ######################################
