@@ -103,7 +103,6 @@ horror.df$clean_data = gsub('[[:digit:]]+',' ',horror.df$clean_data)
 horror.df$clean_data = str_squish(horror.df$clean_data)
 
 ## view df
-
 View(horror.df)
 
 ######################################
@@ -150,17 +149,17 @@ tm = loadNamespace('tm')
 stop.w = stopwords(source='smart')
 
 # create corpus and remove stopwords
-horror.corpus = tm$Corpus(tm$VectorSource(horror.df$lemmatized))
+horror.corpus = tm$Corpus(tm$VectorSource(horror.df$clean_data))
 horror.corpus = tm$tm_map(horror.corpus,tm$removeWords,stop.w)
 
 # create a document term matrix of the corpus
 dtm = tm$DocumentTermMatrix(horror.corpus)
 print(dtm)
 # documents: 9                      header and contents
-# terms: 353                        unique words
-# Non-/sparse entries: 463/2714     actual words
-# Sparsity: 85%                     how much of my data is empty
-# Maximal term length: 20           longest word
+# terms: 373                        unique words
+# Non-/sparse entries: 461/2896     actual words
+# Sparsity: 86%                     how much of my data is empty
+# Maximal term length: 17           longest word
 # Weighting: term frequency (tf)    raw word counts
 
 dtm.df = as.data.frame(as.matrix(dtm))
@@ -175,16 +174,18 @@ word.freq.df = data.frame(word=names(word.freq),freq=word.freq,is_stopword=stop.
 
 # remove stopwords and add back to df
 horror.df$no_stop = lapply(horror.df$lemmatized,function(words)
-{words[!words %in% stop.w]})
-
+  {words[!words %in% stop.w]})
+  
 # view df
 View(horror.df)
 
 ######################################
 
 # final output
-
 horror.df$final = sapply(horror.df$no_stop,paste,collapse=' ')
+if(nrow(horror.df)>0 && horror.df$title[1]=='title') {
+  horror.df = horror.df[-1, ]
+}
 
 # view df
 View(horror.df)
@@ -192,6 +193,90 @@ View(horror.df)
 ######################################
 ## question 3.3
 ######################################
+
+library(tm)
+library(SnowballC)
+
+######################################
+
+## text summarisation technique 1 - RF-IDF
+
+## compute TF-IDF scores
+tfidf = weightTfIdf(dtm)
+
+## extract TF-IDF scores
+tfidf.matrix = as.matrix(tfidf)
+
+# calculate mean TF-IDF scores for each term
+mean.tfidf <- colMeans(tfidf.matrix)
+
+# create df and sort by score
+tfidf.df = data.frame(term=Terms(dtm),tfidf=mean.tfidf)
+tfidf.df = tfidf.df[order(tfidf.df$tfidf,decreasing=TRUE), ]
+
+# views TF-IDF scores df
+View(tfidf.df)
+
+
+
+
+## why did i choose TF-IDF and ...
+
+
+
+
+
+
+
+## Text Summarization Techniques
+
+#### Extractive Summarization
+
+###### Statistical Approaches
+######## TF-IDF stands for Term Frequency-Inverse Document Frequency and is a statistical method used in text summarization. It determines how essential a word in one document is based on its distribution in the text and document language.
+######## LSA employs singular value decomposition to identify the underlying themes or topics in a text. The goal is to reduce the dimensionality of the document-term matrix and, in turn, decrease the noise and redundancy while capturing the semantics of the text. LSA aims to identify hidden themes or topics, thereby reducing dimensionality and noise, while maintaining the essence of the text.
+
+###### Graph-Based Methods
+######## These involve constructing a graph where sentences are nodes connected based on their similarity
+
+###### Machine Learning Algorithms
+######## In this an algorithm is used relate models and training examples to input-output. Models are pairs of input and output, and the learning algorithm is defined through a function that uses the pattern that consistently maps onto data points.
+
+###### Sentence Scoring
+######## Each sentence in the document is scored based on various criteria such as word frequency, importance of keywords, position in the document, and similarity to other sentences. Sentences with higher scores are considered more important and are included in the summary.
+
+#### Abstractive Summarization
+
+###### Sequence-to-Sequence Models
+######## These are deep learning models that transform an input sequence of text into an output sequence that is the summary.
+######## Common models include LSTM (Long Short-Term Memory) networks and the more advanced Transformer-based models like BERT (Bidirectional Encoder Representations from Transformers) and GPT (Generative Pre-trained Transformer).
+
+###### Attention Mechanisms
+######## This technique helps the model focus on different parts of the source document dynamically while generating the summary.
+######## It improves the coherence and relevance of the generated summaries by aligning parts of the input text with the output text.
+
+###### Pre-trained Language Models
+######## Models like BERT and GPT can be fine-tuned for specific summarization tasks. They leverage vast amounts of pre-existing text to produce more contextually enriched summaries.
+######## These models have shown significant promise in generating human-like text.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
