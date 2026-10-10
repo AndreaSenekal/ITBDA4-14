@@ -149,17 +149,17 @@ tm = loadNamespace('tm')
 stop.w = stopwords(source='smart')
 
 # create corpus and remove stopwords
-horror.corpus = tm$Corpus(tm$VectorSource(horror.df$clean_data))
+horror.corpus = tm$Corpus(tm$VectorSource(horror.df$lemmatized))
 horror.corpus = tm$tm_map(horror.corpus,tm$removeWords,stop.w)
 
 # create a document term matrix of the corpus
 dtm = tm$DocumentTermMatrix(horror.corpus)
 print(dtm)
-# documents: 9                      header and contents
-# terms: 373                        unique words
-# Non-/sparse entries: 461/2896     actual words
-# Sparsity: 86%                     how much of my data is empty
-# Maximal term length: 17           longest word
+# documents: 8                      header and contents
+# terms: 352                        unique words
+# Non-/sparse entries: 459/2357     actual words
+# Sparsity: 84%                     how much of my data is empty
+# Maximal term length: 20           longest word
 # Weighting: term frequency (tf)    raw word counts
 
 dtm.df = as.data.frame(as.matrix(dtm))
@@ -197,9 +197,19 @@ View(horror.df)
 library(tm)
 library(SnowballC)
 
+# install.packages('lsa')
+library(lsa)
+
+library(ggplot2)
+library(ggwordcloud)
+library(RColorBrewer)
+
+horror.corpus = tm_map(horror.corpus,removePunctuation)
+dtm = DocumentTermMatrix(horror.corpus)
+
 ######################################
 
-## text summarisation technique 1 - RF-IDF
+## text summarization technique 1 - TF-IDF
 
 ## compute TF-IDF scores
 tfidf = weightTfIdf(dtm)
@@ -207,66 +217,108 @@ tfidf = weightTfIdf(dtm)
 ## extract TF-IDF scores
 tfidf.matrix = as.matrix(tfidf)
 
-# calculate mean TF-IDF scores for each term
-mean.tfidf <- colMeans(tfidf.matrix)
+## calculate mean TF-IDF scores for each term
+mean.tfidf = colMeans(tfidf.matrix)
 
-# create df and sort by score
+## create df and sort by score
 tfidf.df = data.frame(term=Terms(dtm),tfidf=mean.tfidf)
-tfidf.df = tfidf.df[order(tfidf.df$tfidf,decreasing=TRUE), ]
+tfidf.df = tfidf.df[order(tfidf.df$tfidf,decreasing=TRUE),]
 
-# views TF-IDF scores df
+## views TF-IDF scores df
 View(tfidf.df)
 
+######################################
 
+## text summarization technique 1 - LSA
 
+dtm.matrix = t(as.matrix(dtm))
+lsa.analysis = lsa(dtm.matrix)
 
-## why did i choose TF-IDF and ...
+## convert lsa space to matrix
 
+lsa.matrix = as.textmatrix(lsa.analysis)
 
+## extract top and bottom terms for each component
 
+terms = rownames(lsa.matrix)
+components = lsa.analysis$tk
 
+top.terms = function(component,terms,num=5) {
+  sorted = sort(component,decreasing=TRUE)
+  top = terms[order(component,decreasing=TRUE)[1:num]]
+  bottom = terms[order(component,decreasing=FALSE)[1:num]]
+  list(top=top,bottom=bottom)
+}
 
+for (i in 1:2) {
+  cat("Component", i, "\n")
+  terms.i = top.terms(components[,i],terms)
+  cat("Top terms: ", terms.i$top, "\n")
+  cat("Bottom terms: ", terms.i$bottom, "\n\n")
+}
 
+######################################
 
-## Text Summarization Techniques
+## why did I choose TF-IDF and LSA
 
-#### Extractive Summarization
+# both are frequency based methods
+# because data is already normalized/lemmatized which is good for frequency based methods
+# doesn't need labels - unsupervised
 
-###### Statistical Approaches
-######## TF-IDF stands for Term Frequency-Inverse Document Frequency and is a statistical method used in text summarization. It determines how essential a word in one document is based on its distribution in the text and document language.
-######## LSA employs singular value decomposition to identify the underlying themes or topics in a text. The goal is to reduce the dimensionality of the document-term matrix and, in turn, decrease the noise and redundancy while capturing the semantics of the text. LSA aims to identify hidden themes or topics, thereby reducing dimensionality and noise, while maintaining the essence of the text.
+######################################
 
-###### Graph-Based Methods
-######## These involve constructing a graph where sentences are nodes connected based on their similarity
+## bar chart for TF-IDF scores
 
-###### Machine Learning Algorithms
-######## In this an algorithm is used relate models and training examples to input-output. Models are pairs of input and output, and the learning algorithm is defined through a function that uses the pattern that consistently maps onto data points.
+top.20.terms = head(tfidf.df[order(tfidf.df$tfidf,decreasing=TRUE),],20)
 
-###### Sentence Scoring
-######## Each sentence in the document is scored based on various criteria such as word frequency, importance of keywords, position in the document, and similarity to other sentences. Sentences with higher scores are considered more important and are included in the summary.
+ggplot(top.20.terms
+  ,aes(x=reorder(term,tfidf),y =tfidf)) +
+    geom_col(fill='violet',width=0.7) +
+    geom_text(
+      aes(label=round(tfidf,3)),hjust=-0.1,size=3.5) +
+      coord_flip() +
+      labs(title = 'Top 20 TF-IDF Scores for Article',
+        x=NULL,y='TF-IDF Score') +
+        theme_minimal(base_size=13) +
+        theme(plot.title=element_text(face='bold',hjust=0.5))
 
-#### Abstractive Summarization
+######################################
 
-###### Sequence-to-Sequence Models
-######## These are deep learning models that transform an input sequence of text into an output sequence that is the summary.
-######## Common models include LSTM (Long Short-Term Memory) networks and the more advanced Transformer-based models like BERT (Bidirectional Encoder Representations from Transformers) and GPT (Generative Pre-trained Transformer).
+## wordcloud for word frequencies
 
-###### Attention Mechanisms
-######## This technique helps the model focus on different parts of the source document dynamically while generating the summary.
-######## It improves the coherence and relevance of the generated summaries by aligning parts of the input text with the output text.
+ggplot(top.20.terms
+  ,aes(label=term,size=tfidf,color=tfidf)) +
+  geom_text_wordcloud(shape='circle') +
+  scale_size_area(max_size=18) +
+  scale_color_gradientn(colors=brewer.pal(8,'Dark2')) +
+  theme_minimal(base_size=14) +
+  labs(title='Top 20 TF-IDF Terms Across Corpus') +
+  theme(
+    plot.title=element_text(hjust=0.5,face='bold',size=16)
+    ,panel.grid=element_blank()
+    ,axis.text=element_blank()
+    ,axis.title=element_blank()
+  )
 
-###### Pre-trained Language Models
-######## Models like BERT and GPT can be fine-tuned for specific summarization tasks. They leverage vast amounts of pre-existing text to produce more contextually enriched summaries.
-######## These models have shown significant promise in generating human-like text.
+######################################
 
+## scatter plot to represent shared meaning between docs/paragraphs
 
+lsa.dk = as.data.frame(lsa.analysis$dk[,1:2])
+colnames(lsa.dk) = c('dim1','dim2')
+lsa.dk$doc = rownames(lsa.dk)
 
+ggplot(lsa.dk
+  ,aes(x=dim1,y=dim2,label=doc)) +
+  geom_point(color='maroon',size=3) +
+  geom_text(vjust=-1,size=3.5) +
+  labs(title='Documents in Latent Semantic Space',
+       x='Dimension 1',y='Dimension 2') +
+  theme_minimal(base_size=13) +
+  theme(plot.title=element_text(face='bold', hjust=0.5))
 
-
-
-
-
-
+######################################
+######################################
 
 
 
