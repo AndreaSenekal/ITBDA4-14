@@ -86,13 +86,13 @@ all.subtitles = c()
 
 for (i in all.titles) {
   if (str_detect(i,':')) {
-    maintitle = str_squish(str_trim(str_extract(i,'^[^:]+'))) %>% str_to_title()
-    subtitle = str_squish(str_trim(str_remove(i,'^[^:]+:'))) %>% str_to_title()
+    maintitle = str_squish(str_trim(str_extract(i,'^[^:]+')))
+    subtitle = str_squish(str_trim(str_remove(i,'^[^:]+:')))
     all.main.title = c(all.main.title,maintitle)
     all.subtitles = c(all.subtitles,subtitle)
   } else {
-    all.main.title = c(str_squish(all.main.title),str_squish(i)) %>% str_to_title()
-    all.subtitles = c(str_squish(all.subtitles),NA) %>% str_to_title()
+    all.main.title = c(str_squish(all.main.title),str_squish(i))
+    all.subtitles = c(str_squish(all.subtitles),NA)
   }
 }
 
@@ -134,7 +134,29 @@ books.df = as.data.frame(books.list)
 ## view data frame
 View(books.df)
 
+######################################
+## question 4.2
+######################################
 
 
+
+
+
+
+
+######################################
+## question 4.3
+######################################
+
+
+
+
+
+
+
+
+######################################
+## question 4.4
+######################################
 
 
