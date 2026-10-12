@@ -28,36 +28,43 @@ all.ratings = c()
 
 while (has.next) {
   
-  base.books.url = 'https://books.toscrape.com/catalogue/category/books_1/'
-  new.book.url = paste0('https://books.toscrape.com/catalogue/category/books_',current.page,'/')
-  books.html = read_html(base.books.url)
-  
   titles = books.html %>% 
-    html_elements('h3') %>% 
-    html_text(trim = TRUE)
+    html_elements('h3 a') %>%
+    html_attr('title')
   
   all.titles = c(all.titles,titles)
   
   prices = books.html %>% 
-    html_elements('.product_price') %>% 
+    html_elements('.price_color') %>% 
     html_text(trim = TRUE)
   
   all.prices = c(all.prices,prices)
   
   ratings = books.html %>% 
-    html_elements('.star-rating') %>% 
-    html_text(trim = TRUE)
+    html_elements('.star-rating') %>%
+    html_attr('class') %>% 
+    str_remove('star-rating ')
   
   all.ratings = c(all.ratings,ratings)
   
-  has.next = page.num<=total.page
+  has.next = page.num<total.page
   page.num = page.num+1
+  
+  if (has.next) {
+    page.num = page.num + 1
+    new.book.url = paste0(base.books.url,'page-',page.num,'.html')
+    books.html = read_html(new.book.url)
+    Sys.sleep(1)
+  }
+  
 }
 
 
 
 
-
+all.titles[1:50]
+all.prices[1:50]
+all.ratings[1:50]
 
 
 
