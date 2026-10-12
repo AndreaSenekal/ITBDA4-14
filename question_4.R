@@ -8,8 +8,16 @@ library(xml2)
 library(dplyr)
 library(stringr)
 
+######################################
+
+## connect to website
+
 base.books.url = 'https://books.toscrape.com/catalogue/category/books_1/'
 books.html = read_html(base.books.url)
+
+######################################
+
+## get total page numbers to loop through all pages
 
 page.num = books.html %>% 
   html_elements('.current') %>% 
@@ -22,9 +30,17 @@ total.page = as.numeric(page.index[3])
 page.num = current.page
 has.next = TRUE
 
+######################################
+
+## create empty variables
+
 all.titles = c()
 all.prices = c()
 all.ratings = c()
+
+######################################
+
+## loop through all pages and gather info
 
 while (has.next) {
   
@@ -48,7 +64,6 @@ while (has.next) {
   all.ratings = c(all.ratings,ratings)
   
   has.next = page.num<total.page
-  page.num = page.num+1
   
   if (has.next) {
     page.num = page.num + 1
@@ -59,14 +74,65 @@ while (has.next) {
   
 }
 
+######################################
 
+## clean title
+### split into title and subtitle
+### remove white spaces
+### fix inconsistent capitalization
 
+all.main.title = c()
+all.subtitles = c()
 
-all.titles[1:50]
-all.prices[1:50]
-all.ratings[1:50]
+for (i in all.titles) {
+  if (str_detect(i,':')) {
+    maintitle = str_squish(str_trim(str_extract(i,'^[^:]+'))) %>% str_to_title()
+    subtitle = str_squish(str_trim(str_remove(i,'^[^:]+:'))) %>% str_to_title()
+    all.main.title = c(all.main.title,maintitle)
+    all.subtitles = c(all.subtitles,subtitle)
+  } else {
+    all.main.title = c(str_squish(all.main.title),str_squish(i)) %>% str_to_title()
+    all.subtitles = c(str_squish(all.subtitles),NA) %>% str_to_title()
+  }
+}
 
+######################################
 
+## clean price
+
+all.prices.only = as.numeric(str_trim(gsub('£','',all.prices)))
+
+######################################
+
+## clean ratings
+
+all.ratings.numeric = c()
+
+for (i in all.ratings) {
+  if (i=='One') {
+    all.ratings.numeric = c(all.ratings.numeric,1)
+  } else if (i=='Two') {
+    all.ratings.numeric = c(all.ratings.numeric,2)
+  } else if (i=='Two') {
+    all.ratings.numeric = c(all.ratings.numeric,3)
+  } else if (i=='Two') {
+    all.ratings.numeric = c(all.ratings.numeric,4)
+  } else {
+    all.ratings.numeric = c(all.ratings.numeric,5)
+  }
+}
+
+######################################
+
+## create data frame
+
+books.list = list(title=all.main.title,subtitle=all.subtitles,rating=all.ratings.numeric,price=all.prices.only)
+books.df = as.data.frame(books.list)
+
+######################################
+
+## view data frame
+View(books.df)
 
 
 
