@@ -113,9 +113,9 @@ for (i in all.ratings) {
     all.ratings.numeric = c(all.ratings.numeric,1)
   } else if (i=='Two') {
     all.ratings.numeric = c(all.ratings.numeric,2)
-  } else if (i=='Two') {
+    } else if (i=='Three') {
     all.ratings.numeric = c(all.ratings.numeric,3)
-  } else if (i=='Two') {
+  } else if (i=='Four') {
     all.ratings.numeric = c(all.ratings.numeric,4)
   } else {
     all.ratings.numeric = c(all.ratings.numeric,5)
