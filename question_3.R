@@ -155,10 +155,10 @@ horror.corpus = tm$tm_map(horror.corpus,tm$removeWords,stop.w)
 # create a document term matrix of the corpus
 dtm = tm$DocumentTermMatrix(horror.corpus)
 print(dtm)
-# documents: 8                      header and contents
-# terms: 352                        unique words
-# Non-/sparse entries: 459/2357     actual words
-# Sparsity: 84%                     how much of my data is empty
+# documents: 9                      header and contents
+# terms: 353                        unique words
+# Non-/sparse entries: 463/2714     actual words
+# Sparsity: 85%                     how much of my data is empty
 # Maximal term length: 20           longest word
 # Weighting: term frequency (tf)    raw word counts
 
