@@ -201,7 +201,6 @@ for (i in seq_len(nrow(param.grid))) {
     ,model=lda.model
     )
   }
-  
 }
 
 # compare results
@@ -295,7 +294,7 @@ library(wordcloud)
 library(RColorBrewer)
 library(ggplot2)
 
-colors=brewer.pal(k.topics,"Dark2")
+colors=brewer.pal(k.topics,'Dark2')
 
 ######################################
 
